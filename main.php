@@ -1,28 +1,36 @@
 <?php
 
 /*
-Plugin Name: Rename WP Content
-Plugin URI: http://www.graemeboy.com
-Description: Renames wp content directory
+Plugin Name: Change WP Content
+Plugin URI: http://www.graemeboy.com/how-to-hide-that-you-use-wordpress
+Description: Renames wp content directory to "media"
 Author: Graeme Boy
-Version: 1.6
+Version: 1.0
 Author URI: http://www.graemeboy.com
 */
 
 function rename_wp_content_activate() {
-    rename_add_definitions();
-}
+    $new_name = 'media';
+    $old_name = 'wp-content';
+    rename_add_definitions($new_name);
+    change_wp_content_dir($old_name, $new_name);
+} // rename_wp_content_activate()
 
-function rename_add_definitions () {
+function change_wp_content_dir($old_name, $new_name)
+{   
+    rename ( ABSPATH . $old_name , ABSPATH . $new_name);
+} // change_wp_content_dir
+
+function rename_add_definitions ($new_name) {
     // This is the path to the config file
-    $path_to_wp_config = ABSPATH.'wp-config.php';
+    $path_to_wp_config = ABSPATH . 'wp-config.php';
     // This is the part of the config-file before which we add the definitions
     $inclusion_string = "require_once(ABSPATH . 'wp-settings.php');";
     // These are the definitions to add
     $definitions_to_add = array (
-        "define ( 'WP_CONTENT_FOLDERNAME', 'media' );",
+        "define ( 'WP_CONTENT_FOLDERNAME', '$new_name' );",
         "define ( 'WP_CONTENT_DIR', ABSPATH . WP_CONTENT_FOLDERNAME );",
-        "define ( 'WP_SITEURL', 'http://" . $_SERVER['HTTP_HOST'] . "' );",
+        "define ( 'WP_SITEURL', 'http://" . $_SERVER['HTTP_HOST'] . "/' );",
         "define ( 'WP_CONTENT_URL', WP_SITEURL . WP_CONTENT_FOLDERNAME );"
     );
     // Concat these in a readable way
@@ -34,7 +42,6 @@ function rename_add_definitions () {
     $config_content = file_get_contents($path_to_wp_config);
     $to_replace = $pre . $definitions;
     
-    echo $to_replace;
     $new_config = str_replace( $inclusion_string, $to_replace, $config_content );
     // Put contents, which is identical to fopen, fwrite, fclose.
     file_put_contents( $path_to_wp_config, $new_config );
